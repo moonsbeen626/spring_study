@@ -1,0 +1,25 @@
+
+1. spring이란
+
+	1) 스프링 프레임워크의 핵심 기능
+		- 기업형 응용 프로그램을 보조하기 위한(결합력 낮추는 DI, DB, Transaction처리) 쉬운 프레임워크
+	2) 느슨한 결합력, 인터페이스
+		- 코드 수정을 없애기 위함. 
+	3) 코어 기능
+		- DI) Dependency Injection
+			- dependency를 조립. 
+				(1)
+					B b = new B();
+					A a = new A();
+					a.setB(b);   <- dependency injection. 
+				(2). 
+					B b = new B();
+					A a = new A(b);  <- dependency injection. 
+			- 장점) dependency를 쉽게 바꿀 수 있음.
+			- 단점) 조립하는 과정이 필요함.
+			- 스프링에서는 위와 같이 조립하는 과정을 제공.
+		- IOC) Inversion of Control Container
+			- 일체형 프로그램을 만드는 순서 : a완성 -> b완성 -> c완성 -> d완성
+			- 결합형 프로그램을 만드는 순서 : d완성 -> 완성된 d와 c조립해 c완성 -> c와 b조립해 b완성 -> ...a완성
+				-즉, 순서가 반대. inversion함.
+			- 조립할 dependency와 조립과정을 포함한 inversion 컨트롤러.

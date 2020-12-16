@@ -1,0 +1,63 @@
+
+2. dependency를 직접 injection하기
+
+1. program(기본) class
+	void main(...)	{
+	
+		Exam exam = new NewlecExam();
+		ExamConsole console = new InlineExamConsole(exam); <- DI 과정
+		//ExamConsole console = new GridExamConsole(exam)
+		console.print();
+	}
+
+2. Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}
+
+3. NewlecExam class
+	class NewlecExam implements Exam 	{
+		
+		private int kor, eng, math, com; //과목 설정
+		
+		@Override
+		total()	{
+			return kor + eng + math + com;
+		}		
+
+		
+		@Override		
+		avg()	{
+			return total() / 4.0f; 
+		}
+	}
+
+4. ExamConsole interface	
+	interface ExamConsole	{
+		void print();
+	}
+
+5. InlineExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+
+		InlineExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 출력
+		}
+	}
+
+6. GridExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+
+		GridExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 를 grid모양으로 출력
+		}
+	}
