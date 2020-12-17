@@ -1,0 +1,107 @@
+
+4. 값 형식 DI
+
+1. class
+
+(1)program(기본) class
+	void main(...)	{
+	
+		/* 이 부분을 따로 설정으로 만들어서 직접 injection하는 과정을 분리 -> 지시서 생성
+ 		Exam exam = new NewlecExam();
+		ExamConsole console = new InlineExamConsole(); 
+		ExamConsole console = new GridExamConsole();
+		console.set(exam); <- DI 과정		
+		*/
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("패키지경로/setting.xml");
+		ExamConsole console = context.getBean(ExamConsole .class) // ioc컨테이너에서 가지고옴. Examconsole객체의 형태와 일치하는 class찾아서 가지고 옴.
+		console.print();
+	}
+
+(2)NewlecExam class
+	class NewlecExam implements Exam 	{
+		
+		private int kor, eng, math, com; //과목 설정
+		
+		//getter/setter생성	
+
+		@Override
+		total()	{
+			return kor + eng + math + com;
+		}		
+
+		
+		@Override		
+		avg()	{
+			return total() / 4.0f; 
+		}
+	}
+
+(3)InlineExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+		
+		InlineExamConsole(){}// 기본 생성자
+		InlineExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 출력
+		}
+
+		@Override
+		set(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+(4)GridExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+
+		GridExamConsole(){} //기본 생성자
+		GridExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 를 grid모양으로 출력
+		}
+		
+		@Override
+		set(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}
+
+
+
+(2)ExamConsole interface	
+	interface ExamConsole	{
+		void print();
+		void set(Exam exam);
+	}
+
+3. xml
+
+(1)setting.xml	
+	<!-- Exam exam = new NewlecExam();--> //이 부분의 자바 코드를 아래와 같은 xml 설정 코드로 변경 
+	<bean id="exam" class="패키지경로.NewlecExam"> // 생성된 bean들은 ioc컨테이너에 담김.
+		<property name="kor" value="10"></property> //value를 지정. 관련 클래스에 setter 메소드가 있어야 실행됨.
+		<property name="eng" value="10"></property>
+		<property name="math" value="10"></property>
+		<property name="com" value="10"></property>
+	</bean>
+	
+	<!-- ExamConsole console = new InlineExamConsole(); -->
+	<bean id="console" class="패키지경로.InlineExamConsole"> //GridExamConsole로 변경하고 싶으면 class부분만 변경해주면 됨.
+		<!-- console.set(exam); -->
+		<property name="exam" ref="exam"></property> //여기서 name="exam" 의 의미는 setExam을 뜻함. ref에는 할당할 객체이름 전달
+	</bean>
