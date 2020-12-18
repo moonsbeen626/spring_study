@@ -1,0 +1,135 @@
+
+6. 콜랙션 생성과 목록DI
+
+1. class
+
+(1)program(기본) class
+	void main(...)	{
+	
+		/* 이 부분을 따로 설정으로 만들어서 직접 injection하는 과정을 분리 -> 지시서 생성
+ 		Exam exam = new NewlecExam();
+		ExamConsole console = new InlineExamConsole(); 
+		ExamConsole console = new GridExamConsole();
+		console.set(exam); <- DI 과정		
+		*/
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("패키지경로/setting.xml");
+		ExamConsole console = context.getBean(ExamConsole .class) // ioc컨테이너에서 가지고옴. Examconsole객체의 형태와 일치하는 class찾아서 가지고 옴.
+		console.print();
+
+		//List<Exam> exams = new ArrayList<>(); -> setting.xml
+		List<Exam> exams = (List<Exam>) context.getBean("exams");
+		//exams.add(new NewlecExam(1, 1, 1, 1)); ->setting.xml
+		for(Exam e : exams)	e출력;
+		
+	}
+
+(2)NewlecExam class
+	class NewlecExam implements Exam 	{
+		
+		private int kor, eng, math, com; //과목 설정
+		
+		//getter/setter생성
+
+		//기본생성자, 모든 필드 사용하는 생성자 생성	
+
+		@Override
+		total()	{
+			return kor + eng + math + com;
+		}		
+
+		
+		@Override		
+		avg()	{
+			return total() / 4.0f; 
+		}
+	}
+
+(3)InlineExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+		
+		InlineExamConsole(){}// 기본 생성자
+		InlineExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 출력
+		}
+
+		@Override
+		set(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+(4)GridExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+
+		GridExamConsole(){} //기본 생성자
+		GridExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 를 grid모양으로 출력
+		}
+		
+		@Override
+		set(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}
+
+
+
+(2)ExamConsole interface	
+	interface ExamConsole	{
+		void print();
+		void set(Exam exam);
+	}
+
+3. xml
+
+(1)setting.xml	
+	<!-- Exam exam = new NewlecExam();--> //이 부분의 자바 코드를 아래와 같은 xml 설정 코드로 변경 
+	<!--<bean id="exam" class="패키지경로.NewlecExam"> // 생성된 bean들은 ioc컨테이너에 담김.
+		<constructor-arg index="2" value="10"></constructor-arg> // 4개의 필드를 사용하는 생성자를 이용해 값 설정
+		<constructor-arg name="kor" value="10"></constructor-arg> //문제점 : 필드 순서를 알 수 없음. -> index, name사용
+		<constructor-arg index="1" type="int" value="10"></constructor-arg> //type지정도 가능
+		<constructor-arg name="com" value="10"></constructor-arg>
+	</bean>-->	
+	// p태그를 사용해서 위의 과정을 bean태그 선언과 동시에 값 설정. -> 간편, 태그 식별 가능.
+	<bean id="exam" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean> //namespace에서 p태그를 추가하면 사용 가능.
+	
+	<!-- ExamConsole console = new InlineExamConsole(); -->
+	<bean id="console" class="패키지경로.InlineExamConsole"> //GridExamConsole로 변경하고 싶으면 class부분만 변경해주면 됨.
+		<!-- console.set(exam); -->
+		<property name="exam" ref="exam"></property> //여기서 name="exam" 의 의미는 setExam을 뜻함. ref에는 할당할 객체이름 전달
+	</bean>
+
+	<!-- List<Exam> exams = new ArrayList<>(); --> 이 코드를 xml로 setting하는 방법 2가지.
+	(1)
+		<bean id="exams" class="java.util.ArryList">
+			<constructor-arg>
+				<!-- exams.add(new NewlecExam(1, 1, 1, 1)); -->
+				<list>
+					<bean class="패키지명.NewlecExam" p:kor="1" p:eng=...></bean> //직접 bean생성
+					<ref bean="exam"></ref> //ioc컨트롤러에 있는 exam이라는 이름의 ref 참조해 리스트에 추가
+				</list>
+			</constructor-arg>
+		</bean>
+
+	(2)
+		<util:list id=""exams" list-class="java.util.ArryList"> //namespace에서 util태그 추가. 직접 객체를 만들 수 있음. 
+			<bean class="패키지명.NewlecExam" p:kor="1" p:eng=...></bean> 
+			<ref bean="exam"></ref> 
+		</util:list>

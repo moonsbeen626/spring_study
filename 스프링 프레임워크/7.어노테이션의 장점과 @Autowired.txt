@@ -1,0 +1,120 @@
+
+7. 어노테이션의 장점과 @Autowired
+
+1. class
+
+(1)program(기본) class
+	void main(...)	{
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("패키지경로/setting.xml");
+		ExamConsole console = context.getBean(ExamConsole .class) // ioc컨테이너에서 가지고옴. Examconsole객체의 형태와 일치하는 class찾아서 가지고 옴.
+		console.print();
+
+		List<Exam> exams = (List<Exam>) context.getBean("exams");
+		for(Exam e : exams)	e출력;
+		
+	}
+
+(2)NewlecExam class
+	class NewlecExam implements Exam 	{
+		
+		private int kor, eng, math, com; //과목 설정
+		
+		//getter/setter생성
+
+		//기본생성자, 모든 필드 사용하는 생성자 생성	
+
+		@Override
+		total()	{
+			return kor + eng + math + com;
+		}		
+
+		
+		@Override		
+		avg()	{
+			return total() / 4.0f; 
+		}
+	}
+
+(3)InlineExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+		
+		InlineExamConsole(){}// 기본 생성자
+		InlineExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 출력
+		}
+
+		@Autowired // xml설정에서 set부분이 빠졌음 -> 어노테이션으로 알아서 set되도록.
+		@Qulifier("exam1"); //ioc컨테이너에서 Exam타입의 exam1이라는 이름을 가진 객체를 인젝션.
+		@Override
+		setExam(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+(4)GridExamConsole class
+	class InlineExamConsole implements ExamConsole 	{
+		private Exam exam;
+
+		GridExamConsole(){} //기본 생성자
+		GridExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 를 grid모양으로 출력
+		}
+		
+		@Override
+		set(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}
+
+
+
+(2)ExamConsole interface	
+	interface ExamConsole	{
+		void print();
+		void set(Exam exam);
+	}
+
+3. xml
+
+(1)setting.xml	
+
+	<context:annotation-config /> //namespace에서 context태그 추가해 어노테이션으로 설정한 내용을 읽어올 수 있도록허용함. 자료형을 기준으로 참조할 수 있는 객체를 찾아 바인딩.
+
+	<!-- Exam exam = new NewlecExam();-->  
+	<bean id="exam1" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean> // -> Exam형 객체가 2개일때? -> error발생. -> id값으로 식별.	
+	<bean id="exam2" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean>	// Qulifier어노테이션을 클래스에 추가해서 어떤 id값을 식별할지 지정 가능.
+	
+	<!-- ExamConsole console = new InlineExamConsole(); -->
+	<bean id="console" class="패키지경로.InlineExamConsole">
+		<!-- console.set(exam); -->
+		<!-- <property name="exam" ref="exam"></property> --> //이 부분을 어노테이션으로 설정할것. 
+	</bean>
+
+	<!-- List<Exam> exams = new ArrayList<>(); --> 
+	<util:list id=""exams" list-class="java.util.ArryList"> 
+		<!-- exams.add(new NewlecExam(1, 1, 1, 1)); -->
+		<bean class="패키지명.NewlecExam" p:kor="1" p:eng=...></bean> 
+		<ref bean="exam"></ref> 
+	</util:list>
+
+4. Annotation
+	- 설정의 장점 : 설정을 코드에서 함께. xml로 따로 설정하지 않음. 간편.	
+	-@Autowired : bean객체가 만들어 지면(ico컨테이너에 객체 생성이 되면) 해당 객체에서 autowired가 들어간 setter가 있는지 찾은 있으면 자동으로 객체를 연결해줌.	
+	-@Component : 객체화 할 대상으로 설정.
+	-@Qulifier : 객체 이름을 찾아서 바인딩해줌. autowired의 기준 설정. 식별이 모호할 경우에 사용.
