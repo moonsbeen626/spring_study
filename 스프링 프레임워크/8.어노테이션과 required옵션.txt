@@ -1,5 +1,5 @@
 
-7. 어노테이션의 장점과 @Autowired
+8.어노테이션과 required옵션
 
 1. class
 
