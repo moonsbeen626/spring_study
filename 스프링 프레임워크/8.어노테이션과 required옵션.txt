@@ -101,8 +101,8 @@
 
 	<context:annotation-config /> //namespace에서 context태그 추가해 어노테이션으로 설정한 내용을 읽어올 수 있도록허용함. 자료형을 기준으로 참조할 수 있는 객체를 찾아 바인딩.
 
-	<bean id="exam1" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean> 
-	<bean id="exam2" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean>	
+	<!--<bean id="exam1" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean>-->
+	<!--<bean id="exam2" class="패키지경로.NewlecExam" p:kor="10" p:eng="10" p:com="30" p:math="20"></bean>--> //required옵션 사용해 setting에서 객체 설정 따로 뺌.	
 
 	<bean id="console" class="패키지경로.InlineExamConsole"></bean> 
 
