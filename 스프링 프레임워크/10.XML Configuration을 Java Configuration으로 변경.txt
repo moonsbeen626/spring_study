@@ -1,0 +1,119 @@
+
+10. XML Configuration을 Java Configuration으로 변경
+
+1. class
+
+(1)program(기본) class
+	void main(...)	{
+
+		//ApplicationContext context = new ClassPathXmlApplicationContext("패키지경로/setting.xml"); 
+		ApplicationContext context = newAnnotationConfigApplicationContext(NewlecDIConfig.class) //classpath -> annotaionconfig로 변경해 클래스를 대입. register함수 사용해 여러개의 config파일 설정 가능.
+		ExamConsole console = context.getBean(ExamConsole .class);
+		console.print();
+	}
+
+(2)NewlecExam class	
+	@Component // inlineExamConsole 사용 위해 함께 component.
+	class NewlecExam implements Exam 	{
+		
+		@Value("20")//기본값 설정.
+		private int kor
+		@Value("10")
+		private int eng
+
+		private int math
+		private int com; 
+		
+		//getter/setter생성
+
+		//기본생성자, 모든 필드 사용하는 생성자 생성	
+
+		@Override
+		total()	{
+			return kor + eng + math + com;
+		}		
+
+		
+		@Override		
+		avg()	{
+			return total() / 4.0f; 
+		}
+	}
+
+(3)InlineExamConsole class
+	@Component // 객체 생성을 setting에서 하지 않고 바로.
+	//@Component("console") //main함수에서 이름을 찾아서 가지고 오는 방식 사용시 필요한 설정.
+	class InlineExamConsole implements ExamConsole 	{
+
+		@Autowired(required = true) // 무조건 ioc컨테이너에 객체가 있어 바인딩이 되어야 함.
+		//@Qulifier("exam1"); setting에 exam1이 없으니 지워줌.
+		private Exam exam; //기본 생성자 호출하면서 바인딩. 
+		
+		InlineExamConsole(){}// 기본 생성자
+		InlineExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			if(exam == null) // 바인딩시 문제발생.무조건 컨테이너 안에 객체가 있어야 함. 그래서 required옵션 줌.
+				"total is " + 0 + " avg is " + 0 출력
+			else
+				"total is " + exam.total() + " avg is " + exam.agv() 출력
+		}
+
+	
+		@Override
+		setExam(Exam exam)	{ 
+			this.exam = exam;
+		}
+	}
+
+(4)GridExamConsole class
+	class GridExamConsole implements ExamConsole 	{
+		private Exam exam;
+
+		GridExamConsole(){} //기본 생성자
+		GridExamConsole(Exam exam) this.exam = exam; //생성자			
+
+		@Override
+		void print()	{
+			"total is " + exam.total() + " avg is " + exam.agv() 를 grid모양으로 출력
+		}
+		
+		@Override
+		set(Exam exam)	{
+			this.exam = exam;
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}
+
+
+
+(2)ExamConsole interface	
+	interface ExamConsole	{
+		void print();
+		void set(Exam exam);
+	}
+
+3. setting.xml //아래 코드를 4번 코드로 전부 변경할것. xml파일 필요 없도록.	
+	
+	<context:component-scan base-package="패키지경로"/>// @ComponentScan("..") 으로 변경
+	<bean id ="exam" class="경로"/> // @Bean으로 변경
+
+4. Jaca Configuration	
+	@ComponentScan("패키지 경로") 
+	@Configuration //설정 파일임을 알림.
+	class NewlecDIConfig{
+
+		@Bean //bean객체 컨테이너에 생성
+		public Exam exam()	{ //여기서 exam은 함수 이름이 아닌 id값 즉 컨테이너에 담기는 이름을 의미.
+			return new NewlecExam();
+		}
+
+	}
