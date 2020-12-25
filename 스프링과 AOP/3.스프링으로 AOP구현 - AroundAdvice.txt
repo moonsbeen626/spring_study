@@ -1,0 +1,88 @@
+3. 스프링으로 AOP구현 - AroundAdvice
+
+1. class 
+(1)program(기본) class
+ 	void main(...)	{
+
+		ApplicationContext context = newAnnotationConfigApplicationContext(NewlecDIConfig.class) 
+		ExamConsole console = context.getBean(ExamConsole .class);
+						
+		Exam exam= (Exam) context.getBean("exam"); //exam은 프록시. target은 실제 객체
+									
+		prin exam.total, exam.avg출력;
+	}
+
+(2)NewlecExam class	
+	class NewlecExam implements Exam 	{
+		private int kor
+		private int eng
+
+		private int math
+		private int com; 
+		
+		//getter/setter생성
+
+		//기본생성자, 모든 필드 사용하는 생성자 생성	
+
+		@Override
+		total()	{
+			int result = kor + eng + math + com;
+
+			return result;
+		}		
+
+		
+		@Override		
+		avg()	{
+			float total() / 4.0f; 
+			
+			return float; 
+		}
+	}
+
+(3) Around방식의 cross-cutting concern 주입 방법.
+	LogAroundAdvice implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Trowable	{
+			long start = System.currentTimeMillis();
+			
+			//실제 업무 호출
+			Object result = invocation.proceed();
+
+			long end= System.currentTimeMillis();
+
+			print (end - start)만큼 시간 걸림 출력;	
+			
+			return result;
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}	
+
+3. setting.xml
+	<bean id="target" class="패키지 경로.NewlecExam" p:kor="1" p:eng="1" p:math="1" p:com="1"/> //bean 생성
+	
+	<!--아래 부분을 추가, 삭제를 통해 보조 업무 로직을 실행시킬 수 있음.-->
+	<bean id="LogAroundAdvice" class="패키지 경로.LogAroundAdvice "/> // interceptor handler생성
+	<bean  id="exam" class="org.springframework.aop.framework.ProxyFactoryBean"> // exam이라는 이름의 proxy생성
+		<property name="target" ref="target"/> // name의 target은 setTarget메소드. ref의 target은 bean에 있는 target으로 프록시 설정.
+		<property name="interceptorNames"> // handler. 복수형이므로 list필요.
+			<list>
+				<value>LogAroundAdvice</value>
+			</list>
+		</property>
+	</bean>
+
+4. cross-cutting concern 실행 위치에 따른 구별. 각각에 알맞은 인터페이스 상속받아 구현
+	(1) Before - 주 업무 실행 전
+	(2) After Running - 주 업무 동안
+	(3) Atfer Throwing - 예외 처리
+	(4) Around - 주 업무 실행 전, 동안 
+
+	

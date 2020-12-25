@@ -1,0 +1,20 @@
+
+1. AOP란
+
+AOP(Aspect Oriented Programming)
+
+1. Aspect의미
+	- Object Oriented Programming : 사용자 관점에서 프로그래밍
+	- Aspect Oriented Programming : 사용자 관점 뿐만 아니라 개발자, 운영자 관점도 포함. 서로 분리하고 결합시켜 프로그래밍.
+
+2. Cross-cutting Concern
+	- 주 업무 로직과 분리가 자유로움. 실행 방향에 수직으로 업무를 분리.
+	- 로그처리, 보안처리, 트랜잭션처리 등의 관점사항 들을 분리된 프로그램의 앞 또는 뒤에 조립.
+
+3, 함수 호출 방식
+	- 직접 관점사항을 조립하지 않고 따로 관리 후 호출해서 사용.
+
+4. 구현 방식
+	- 주 업무 로직(Core concern)이 소스가 없어도 새로운 코드 추가 가능. -> 프락시 사용
+	- 사용자 -> 프락시 호출 -> 원하는 코드 작성 (실제 코드에 작성하는 것이 아님) -> 스프링DI로 해
+	- 포인트 컷(Cross-cutting Concern) + 조인 포인트(결합할 수 있는 위치) + 위빙(결합) 
