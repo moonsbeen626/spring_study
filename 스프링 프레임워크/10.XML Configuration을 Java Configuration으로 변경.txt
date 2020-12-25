@@ -106,7 +106,7 @@
 	<context:component-scan base-package="패키지경로"/>// @ComponentScan("..") 으로 변경
 	<bean id ="exam" class="경로"/> // @Bean으로 변경
 
-4. Jaca Configuration	
+4. Java Configuration	
 	@ComponentScan("패키지 경로") 
 	@Configuration //설정 파일임을 알림.
 	class NewlecDIConfig{
