@@ -1,0 +1,120 @@
+4. 스프링으로 AOP구현 - BeforeAdvice, After Returning/Throwing Advice
+
+1. class 
+(1)program(기본) class
+ 	void main(...)	{
+
+		ApplicationContext context = newAnnotationConfigApplicationContext(NewlecDIConfig.class) 
+		ExamConsole console = context.getBean(ExamConsole .class);
+						
+		Exam exam= (Exam) context.getBean("exam"); //exam은 프록시. target은 실제 객체
+									
+		prin exam.total, exam.avg출력;
+	}
+
+(2)NewlecExam class	
+	class NewlecExam implements Exam 	{
+		private int kor
+		private int eng
+
+		private int math
+		private int com; 
+		
+		//getter/setter생성
+
+		//기본생성자, 모든 필드 사용하는 생성자 생성	
+
+		@Override
+		total()	{
+			int result = kor + eng + math + com;
+			
+			if(kor > 100)  //after throwing 예외 위해 생성.
+				throw new IlligalArgumentException("유효하지않은 국어 점수");
+		
+			return result;
+		}		
+
+		
+		@Override		
+		avg()	{
+			float total() / 4.0f; 
+			
+			return float; 
+		}
+	}
+
+(3) Around방식의 cross-cutting concern 주입 방법.
+	LogAroundAdvice implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Trowable	{
+			long start = System.currentTimeMillis();
+			
+			//실제 업무 호출
+			Object result = invocation.proceed();
+
+			long end= System.currentTimeMillis();
+
+			print (end - start)만큼 시간 걸림 출력;	
+			
+			return result;
+		}
+	}
+
+(4) Before방식의 cross-cutting concern 주입 방법.
+	LogBeforeAdvice implements MethodBeforeAdvice { //implements가 around와 다름
+		@Override
+		public void Before(Method method, Object[] args, Object target) throws Trowable	{
+			print "before이 실행되었음" 출력
+		}
+	}
+
+(5) After Returning 방식의 cross-cutting concern 주입 방법. 실행 순서 before -> 주로직 -> after returning 또는 after throwing
+	LogBeforeAdvice implements AfterReturningAdvice { //implements가 다름
+		@Override
+		public void afterReturning(Object returnValue, Method method, Object[] args) throws Trowable	{ //return 값들 전달됨
+			print "returnValue, method" 출력 
+		}
+	}
+
+(6) After Throwing 방식의 cross-cutting concern 주입 방법. 예외상황에 따라 함수 인자가 달라짐. 
+	LogBeforeAdvice implements ThrowsAdvice{ //implements가 다름
+		public void afterThrowing(IlligalArgumentException e) throws Trowable	{  //예외상황에 따라 IlligalArgumentException 부분 변경해 사용.
+			print "예외가 발생.  e.getMessage()" 출력
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}	
+
+3. setting.xml
+	<bean id="target" class="패키지 경로.NewlecExam" p:kor="101" p:eng="1" p:math="1" p:com="1"/> 
+	
+	<!--아래 부분을 추가, 삭제를 통해 보조 업무 로직을 실행시킬 수 있음.-->
+	<bean id="LogAroundAdvice" class="패키지 경로.LogAroundAdvice "/> //Around handler
+	<bean id="LogBeforeAdvice" class="패키지 경로.LogBeforeAdvice "/> //Before handler
+	<bean id="LogAfterReturningAdvice" class="패키지 경로.LogAfterReturningAdvice "/> //After Returning handler
+	<bean id="LogAfterThrowingAdvice" class="패키지 경로.LogAfterThrowingAdvice "/> //After Throwing handler
+	<bean  id="exam" class="org.springframework.aop.framework.ProxyFactoryBean"> 
+		<property name="target" ref="target"/> 
+		<property name="interceptorNames"> 
+			<list>
+				<value>LogAroundAdvice</value>
+				<value>LogBeforeAdvice</value>
+				<value>LogAfterReturningAdvice</value>
+				<value>LogAfterThrowingAdvice</value>
+			</list>
+		</property>
+	</bean>
+
+4. cross-cutting concern 실행 위치에 따른 구별. 각각에 알맞은 인터페이스 상속받아 구현
+	(1) Before - 주 업무 실행 전
+	(2) After Returning- 주 업무 이후
+	(3) Atfer Throwing - 예외 처리
+	(4) Around - 주 업무 실행 전, 동안 
+
+	

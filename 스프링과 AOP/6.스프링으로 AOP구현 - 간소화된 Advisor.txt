@@ -1,0 +1,150 @@
+6. 스프링으로 AOP구현 - 간소화된 Advisor
+1. class 
+(1)program(기본) class
+ 	void main(...)	{
+
+		ApplicationContext context = newAnnotationConfigApplicationContext(NewlecDIConfig.class) 
+		ExamConsole console = context.getBean(ExamConsole .class);
+						
+		Exam exam= (Exam) context.getBean("exam"); .
+									
+		prin exam.total, exam.avg출력;
+	}
+
+(2)NewlecExam class	
+	class NewlecExam implements Exam 	{
+		private int kor
+		private int eng
+
+		private int math
+		private int com; 
+		
+		//getter/setter생성
+
+		//기본생성자, 모든 필드 사용하는 생성자 생성	
+
+		@Override
+		total()	{
+			int result = kor + eng + math + com;
+			
+			if(kor > 100)  //after throwing 예외 위해 생성.
+				throw new IlligalArgumentException("유효하지않은 국어 점수");
+		
+			return result;
+		}		
+
+		
+		@Override		
+		avg()	{
+			float total() / 4.0f; 
+			
+			return float; 
+		}
+	}
+
+(3) Around방식의 cross-cutting concern 주입 방법.
+	LogAroundAdvice implements MethodInterceptor {
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Trowable	{
+			long start = System.currentTimeMillis();
+			
+			//실제 업무 호출
+			Object result = invocation.proceed();
+
+			long end= System.currentTimeMillis();
+
+			print (end - start)만큼 시간 걸림 출력;	
+			
+			return result;
+		}
+	}
+
+(4) Before방식의 cross-cutting concern 주입 방법.
+	LogBeforeAdvice implements MethodBeforeAdvice { //implements가 around와 다름
+		@Override
+		public void Before(Method method, Object[] args, Object target) throws Trowable	{
+			print "before이 실행되었음" 출력
+		}
+	}
+
+(5) After Returning 방식의 cross-cutting concern 주입 방법. 실행 순서 before -> 주로직 -> after returning 또는 after throwing
+	LogBeforeAdvice implements AfterReturningAdvice { //implements가 다름
+		@Override
+		public void afterReturning(Object returnValue, Method method, Object[] args) throws Trowable	{ //return 값들 전달됨
+			print "returnValue, method" 출력 
+		}
+	}
+
+(6) After Throwing 방식의 cross-cutting concern 주입 방법. 예외상황에 따라 함수 인자가 달라짐. 
+	LogBeforeAdvice implements ThrowsAdvice{ //implements가 다름
+		public void afterThrowing(IlligalArgumentException e) throws Trowable	{  //예외상황에 따라 IlligalArgumentException 부분 변경해 사용.
+			print "예외가 발생.  e.getMessage()" 출력
+		}
+	}
+
+2. interface
+
+(1)Exam interface
+	interface Exam	{
+		int total(); //총 합 반환		
+		float avg(); //평균 반환
+	}	
+
+3. setting.xml
+	<bean id="target" class="패키지 경로.NewlecExam" p:kor="1" p:eng="1" p:math="1" p:com="1"/> 
+	
+	<!--아래 부분을 추가, 삭제를 통해 보조 업무 로직을 실행시킬 수 있음.-->
+	<bean id="LogAroundAdvice" class="패키지 경로.LogAroundAdvice "/> 
+	<bean id="LogBeforeAdvice" class="패키지 경로.LogBeforeAdvice "/>
+	<bean id="LogAfterReturningAdvice" class="패키지 경로.LogAfterReturningAdvice "/> 
+	<bean id="LogAfterThrowingAdvice" class="패키지 경로.LogAfterThrowingAdvice "/> 
+
+	<!--<bean id ="classicPointCut" class="org.springframework.aop.support.NameMathchMethodPointCut"> //포인트컷 생성
+		<property name="mappedName" value="total"/> //total이라는 이름의 메소드만 조인포인트로 사용하겠다. 
+	</bean>
+	
+	<bean id="classicBeforeAdvisor" class="org.springframework.aop.support.DefaultPointCutAdvisor"> //advisor. 포인트컷과 advice연결.
+		<property name="advice" ref="LogBeforeAdvice" /> //setAdvice. beforeadvice는 total함수에 대해서만 실행이 가능.
+		<property name="prointcut" ref="classicPointCut"> //setPointcut
+	</bean>-->
+
+	<!-- 포인트 컷, 포인트 컷과 advice연결하는 부분을 한번에 설정할 수 있도록 변경-->
+	<bean id="classicBeforeAdvisor" class="org.springframework.aop.support.NameMathchMethodPointCutAdvisor">
+		<property name="advice" ref="LogBeforeAdvice" /> 
+		<property name="mappedNames"> //mappNames로 여러 메소드 지정 가능
+			<list>
+				<value>total</value> 
+			</list>
+		</property>
+	</bean>
+
+	<!--<bean id="classicBeforeAdvisor" class="org.springframework.aop.support.RegexpMethodPointCutAdvisor"> //메소드를 가지고 올때 이름이 아니라 패턴으로 가져옴.
+		<property name="advice" ref="LogBeforeAdvice" /> 
+		<property name="mappedNames"> 
+			<list>
+				<value>.*to.*</value> //메소드 이름 중 to가 들어간 메소드를 지정.
+			</list>
+		</property>
+	</bean>-->
+
+	<bean  id="exam" class="org.springframework.aop.framework.ProxyFactoryBean"> //proxy
+		<property name="target" ref="target"/> 
+		<property name="interceptorNames"> 
+			<list>
+				<value>LogAroundAdvice</value>
+				<value>LogBeforeAdvice</value>
+				<value>LogAfterReturningAdvice</value>
+				<value>LogAfterThrowingAdvice</value>
+			</list>
+		</property>
+	</bean>
+
+4. 포인트컷, 조인포인트, 위빙
+	(1)Pointcuts
+		- 모든 target이 조인포인트가 되지 않도록 원하는 메소드만 호출하도록 지정. 
+	(2)Join Point
+		- cross-cutting concern이 조인하게될 위치. 모든 target이 될 수 있음.
+	(3)weaving
+		- 프록시를 타겟에 연결하는 모습. 마치 뜨게질 하는 모습과 같다고 해서 이름 붙여짐. 
+
+	
