@@ -81,7 +81,7 @@
 
 4. cross-cutting concern 실행 위치에 따른 구별. 각각에 알맞은 인터페이스 상속받아 구현
 	(1) Before - 주 업무 실행 전
-	(2) After Running - 주 업무 동안
+	(2) After Returning- 주 업무 이후
 	(3) Atfer Throwing - 예외 처리
 	(4) Around - 주 업무 실행 전, 동안 
 
