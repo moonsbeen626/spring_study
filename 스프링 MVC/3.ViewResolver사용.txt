@@ -1,0 +1,43 @@
+3. ViewResolver사용
+
+1. controller
+
+(1)indexController
+	public class indexController implements Controller {
+		@Override 
+		public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Eception{
+			ModelAndView mv = new ModelAndView("index"); // viewresolver사용.
+			mv.addObject("data", "hello"); 
+			//mv.setViewName("/WEB-INF/view/index.jsp"); -> 이 부분 viewresolver에서 설정할것,
+
+			return mv; //view에게 model을 전달
+ 		}
+	}
+
+2. xml
+ 
+(1) WEB-INF/web.xml
+	<servlet>	
+		<servlet-name>dispatcher</servlet-name> 
+		<servlet-class>org.springframework.sevlet.DispatcherServlet</setvlet-class> 
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>dispatcher</servlet-name> 
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+(2) WEB-INF/dispatcher-servlet.xml //서블릿 이름-servlet.xml
+	<bean id="/index" class="패키지경로.indexController"></bean> //id는 요청 url의 이름, class는 컨트롤러
+	
+	//viewresolver설정
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/view/"></property> //주소 앞부분
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+
+3. jsp
+
+(1) WEB-INF/view/index.jsp -> index페이지를 WEB-INF/view밑으로 숨겨 사용자가 직접 요청할 수 없도록. 컨트롤러에서는 요청 가능.
+	<body>
+		<h1>${data}<h1>
+	</body>
