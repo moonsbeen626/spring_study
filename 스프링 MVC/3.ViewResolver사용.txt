@@ -41,3 +41,5 @@
 	<body>
 		<h1>${data}<h1>
 	</body>
+
+(2) index.jsp // 실제 index 페이지와 같은 이름 생성. 빈 파일. 이름만 같게해서 viewresolver 오류 발생하지 않도록.
