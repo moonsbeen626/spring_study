@@ -1,4 +1,4 @@
-19. QueryString입력-변수명 별칭과 기본값 처리
+20. QueryString입력-변수명 별칭과 기본값 처리
 
 1. controller
 
@@ -286,5 +286,11 @@
 				<tiles:insertAttribute name="footer" />
 			</body>
 (2) index.jsp 
+
+4.@RequestParam Optional속성
+	- name : param 전달 값을 name이라는 속성에 넣음
+	- defaultValue : name에 들어갈 param이 전달되지 않았을때 설정해 줄 기본값
+	- required : 기본값 true. param이 전달되지 않으면 오류생성. false로 설정시 param 전달되지 않아도 오류 발생하지 않음. 
+	- value : name의 별칭. 즉 name과 같음. name과 value둘다 사용하면 안됨. 
 
 	
