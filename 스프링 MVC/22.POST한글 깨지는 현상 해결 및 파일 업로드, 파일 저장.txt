@@ -1,0 +1,342 @@
+22. POST한글 깨지는 현상 해결 및 파일 업로드, 파일 저장
+
+1. controller
+
+(1)HomeController
+	@Controller
+	@RequestMapping("/")
+	HomeController { 
+		
+		@RequestMapping("index")
+		@ResponseBody 
+		public String index() { 
+			return "hello"; 
+		}
+
+	}
+
+(2)NoticeController
+	@Controller
+	@RequestMapping("/notice/")
+	NoticeController {
+
+		@Autowired
+		private NoticeService noticeservice;
+	
+		@RequestMapping("list") 			
+		public String list(@RequesParam(name = "p", defaultValue = "1") String page)	throws ClassNotFoundException, SQLException { 
+			System.out.println(page); 
+			return "notice.list";
+		}
+	
+		@RequestMapping("detail")
+		public String detail()	{
+			return "notice.detail";
+		}
+	}
+
+(3)NoticeAPIController
+	@RestController("noticeAPIController") 
+	@RequestMapping("/api/")
+	NoticeAPIController	{
+
+		@Autowired
+		private NoticeService service;
+
+		@RequestMapping("list");
+		public List<Notice> list()	throws ClassNotFountException, SQLException {
+			List<Notice> list = service.getList(1, "title", "");
+			return list; 
+		}
+
+	}
+
+(4)AdminNoticeController
+	@Controller
+	@RequestMapping("/admin/")
+	AdminNoticeController	{
+
+		@Autowirde
+		private ServletContext ctx; 
+		
+		@RequestMapping("list")
+		public String list()	{
+		
+		}
+
+		@RequestMapping("reg") //등록
+		@ResponseBody
+		public String list(String title, String content, MultipartFile file, HttpServletRequest request) //multipartfile로 file받음	{
+			String fileName = file.getOriginalFilename(); //파일 이름 가져옴
+			long size = file.getSize(); //파일 크기 가져옴
+			System.out.println(fileName); //파일이름이 제대로 왔는지 확인
+			
+			ctx = request.getServletContext(); // request로 서블릿콘텍스트 가져욤.	
+
+			String webPath = "/static/upload"; //파일 업로드할 홈 기반 상대 경로 지정
+			String realPath = ctx.getRealPath(webPath); // 실제 물리 경로로 반환
+			System.out.println(realPath); //제대로 경로 출력되는지 확인
+			
+			File savePath = new File(realPath);		
+			if(!savePath.exists()) {//실제 해당 경로가 존재하는지에 대해 boolean반환. 업로드할 경로가 없으면 경로 생성.
+				savePath.mkdirs(); //전체 경로를 생성
+			}
+			
+			realPath += File.separator + fileName; // realPath\fileName으로 저장될 수 있도록. File.separator는 시스템에 맞는 구분자 생성
+			File saveFile = new File(realPath); //파일 객체 생성
+			file.transfer(saveFile); // multipart의 file에 파일 객체 전달
+			
+			return String.format("title:%s content:%s" , title, content);
+		}
+
+		@RequestMapping("edit") //수정
+		public String list()	{
+		
+		}
+
+		@RequestMapping("del") //삭제
+		public String list()	{
+		
+		}	
+
+	}
+
+2. Service
+
+(1)JDBCNoticeService 
+	@Service
+	JDBCNoticeService implements NoticeService{ 
+		
+		@Autowired 
+		private DataSource dataSource; 
+ 	
+		...
+	}
+
+(2) NoticeService(Interface)
+	interface NoticeService {	
+		List<Notice> getList(int page, String field, String query) throws ClassNotFoundException, SQLException;
+		nt getCount() throws ClassNotFoundException, SQLException;
+		int insert(Notice notice) throws SQLException, ClassNotFoundException;
+		int update(Notice notice) throws SQLException, ClassNotFoundException;
+		public int delete(int id) throws ClassNotFoundException, SQLException;
+	}
+
+3. Entity(DTO)
+
+(1) Notice
+	Notice{
+		private int id;
+		private String title;
+		private String writerId;
+		private Date regDate;
+		private String content;
+		private int hit;
+		private String files;
+	
+		public Notice() {	}
+
+		public Notice(int id, String title, String writerId, Date regDate, String content, int hit, String files) {
+			...
+		}
+
+		//기타 getter, setter들
+
+	}
+
+4. xml
+ 
+(1) WEB-INF/web.xml
+	<listener> 
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<context-param> 
+		<param-name>contextConfigLocation</param-name>
+		<param-value> 
+			/WEB-INF/spring/service-context.xml
+			/WEB-INF/spring/security-context.xml
+		</param-value>
+	</context-param>
+
+	<servlet>	
+		<servlet-name>dispatcher</servlet-name> 
+		<servlet-class>org.springframework.sevlet.DispatcherServlet</setvlet-class> 
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring/servlet-context.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup> 
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>dispatcher</servlet-name> 
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<filter> // 한글 post시 깨지는 문제 해결 위한 filter. was와 servlet중간에 위치.
+		<filter-name>charaterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>charaterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+(2) WEB-INF/tiles.xml -> tiles지시서
+	<!DOCTYPE tiles-definitions PUBLIC
+      	 "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+      	 "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+	<tiles-definitions>
+		<definition name="root.*" template="/WEB-INF/view/inc/rootLayout.jsp"> 
+    			<put-attribute name="header" value="/WEB-INF/view/inc/header.jsp" />
+			<put-attribute name="body" value="/WEB-INF/view/{1}.jsp" />
+    			<put-attribute name="footer" value="/WEB-INF/view/inc/footer.jsp" />
+  		</definition>
+  		<definition name="notice.*" template="/WEB-INF/view/inc/layout.jsp"> 
+    			<put-attribute name="header" value="/WEB-INF/view/inc/header.jsp" />
+			<put-attribute name="body" value="/WEB-INF/view/notice/{1}.jsp" /> 
+    			<put-attribute name="footer" value="/WEB-INF/view/inc/footer.jsp" />
+  		</definition>
+	</tiles-definitions>
+
+(3) WEB-INF/spring 
+	1) /servlet-context.xml	
+		<context:component-scan base-package="패키지경로" /> 
+		
+		<bean class="org.springframework.web.servlet.view.UrlBasedViewResolver"> 
+			<property name="viewClass" value="org.springframework.web.servlet.view.tiles3.TilesView" />
+			<property name="order" value="1" />
+		</bean>
+	
+		<bean class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+			<property name="definitions" value="/WEB-INF/tiles.xml" />
+		</bean>
+		
+		<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+			<property name="prefix" value="/WEB-INF/view/"></property>
+			<property name="suffix" value=".jsp"></property>
+			<property name="order" value="2" />.
+		</bean>
+
+		<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"> //파일 업로드 설정 -> pom.xml에서 commons-fileupload dependencies 추가.
+			<property name="maxUploadSize" value="314572800" /> //업로드 최대 사이즈 설정. 바이트단위 300*1024*1024 즉 300메가
+		</bean>
+
+		<mvc:resources location="/static/" mapping="/**"></mvc:resources>
+		<mvc:annotation-driven>
+			<mvc:message-converters>
+				<bean class="org.springframework.http.converter.StringHrrpMessageConverter">
+					<property name="supportedMediaTypes">
+						<list>
+							<value>text/html;charset=UTF-8</value>
+						</list>
+					</property>
+				</bean>
+			</mvc:message-converters>
+		</mvc:annotation-driven>
+
+	2) /service-context.xml
+		<context:component-scan base-package="패키지경로" /> 
+	
+		<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" > 
+			<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"></property> 
+			<property name="url" value="jdbc:oracle:thin:@localhost:1521/xepdb1"></property>
+			<property name="username" value="moon"></property>
+			<property name="password" value="1234"></property>
+		</bean>
+		
+	3) /security-context.xml	
+5. jsp
+
+(1) WEB-INF/view
+	1. /index.jsp 
+		<main class="main">
+			<nav id ="member-menu" class="linear-layout">
+				<h1 class="hidden">공지사항</h1>
+				<ul class="linear-layout">
+					<li><a href="/notice/list" /></li> 
+				</ul>
+			</nav>
+		</main>
+	
+	2. /notice
+		1) /list.jsp
+			<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> 
+			<main class="main">
+				<div class="notice margon-top">
+					<h3 class="hidden">공지사항 목록</h3>
+					<table class="table">
+						<thead>
+							<tr><th class="w60">번호</th>
+							<th class="expand">제목</th>
+							<th class="w100">작성자</th>
+							<th class="w100">작성일</th>
+							<th class="w60">조회수</th></tr>
+						</thead>
+						<tbody>
+							<c:forEach var="n" items="${list}"> 
+								<tr><td>${n.id}</td>
+								<td class="title text-align-center"><a href="detail">${n.title}</td> 
+								<td>${n.writerId}</td>
+								<td>${n.regDate}</td>
+								<td>${n.hit}</td>
+							</c:forEach>
+						</tbody>
+			</main>
+
+		2) /detail.jsp
+			<main class="main">
+				<h1>detail페이지</h1>
+			</main>
+
+	3. /inc -> 공통 모듈 관리
+		1) /header.jsp 	
+			<header id="header"> 
+				<h1>공통 헤더 부분</h1>
+			</header>
+
+		2) /footer.jsp
+			<footer id="footer">
+				<h1>공통 footer부분</h1>
+			</footer>
+
+		3) /layout.jsp -> 모듈을 꽂아넣을 jsp
+			<%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %> 
+			
+			<body>
+				<!-- header부분-->
+				<tiles:insertAttribute name="header" /> 
+				<!-- main 부분 -->
+				<tiles:insertAttribute name="body" />
+				<!-- footer 부분 -->
+				<tiles:insertAttribute name="footer" />
+			</body>
+		
+		4) /rootLayout.jsp -> Root페이지를 위한 layout
+			<body>
+				<!-- header부분-->
+				<tiles:insertAttribute name="header" /> 
+				<!-- main 부분 -->
+				<tiles:insertAttribute name="body" />
+				<!-- footer 부분 -->
+				<tiles:insertAttribute name="footer" />
+			</body>
+
+	4. /admin //추가
+		1) /reg.jsp
+			<form action="reg" method="post" enctype="multipart/form-data"> //파일 업로드 위한 인코딩 타입 설정
+				<td class="text-align-left text-indent text-strong"><input type="text" name="title"/></td>
+				<td colspan="4"><textarea class="content" name ="content"></td>
+				<th>첨부파일</th>
+				<td colspan="3" class="text-align-left"><input type="file" name="file"/></td> //파일 업로드 
+			</form>
+(2) index.jsp 
+	
