@@ -1,0 +1,55 @@
+1. Mybatis Vs JPA
+
+영속성? 
+	- 데이터를 생성한 프로그램이 종료되도 사라지지 않는 데이터의 특성. 
+	- 영속성 갖지 않는 데이터는 메모리에만 존재하기 떄문에 프로그램을 종료하면 모두 잃어버리게 됨.
+	- 이러한 특성을 가지고 간단한 작업만으로 DB와 연동되는 시스템을 빠르게 개발할 수 있는 프레임워크를 Persistence Framework라고 한다.
+	- Persistence Framework에는 SQL Mapper, ORM이 있다.
+
+
+1. Mybatis 
+	1)SQL Mapper
+		- SQL 과 Object 필드를 매핑하는 역할. 
+		- SQL문장으로 직접 DB를 다룬다. 즉 SQL을 명시해 줘야 사용할 수 있다.
+	2) 장점
+		- SQL문이 익숙하다면 쉽게 사용할 수 있다.  
+		- 복잡한 비즈니스 로직을 SQL문 하나로 처리할 수 있음.
+	3) 단점
+		- 비슷한 기능의 SQL문이 반복되거나 DB가 변경될 경우 많은 부분의 설정을 변경해야 하는 문제가 있다.
+	
+2. JPA
+ 	1)ORM기반
+		- DB의 데이터와 Object필드를 매핑하는 역할.(객체 - 관계 매핑)
+		- 객체를 통해 간접적으로 DB를 다룬다. 객체와 관계형 DB의 데이터를 자동으로 매핑해준다.
+  		- 객체 간의 관계를 바탕으로 SQL자동 생성
+	2) JPA의 영속성 컨텍스트(Persistence Context) -> 버퍼링, 캐싱 등의 이점을 가짐.
+		(1)영속성 관리
+			1. EntityManagerFactory) 
+				어플리케이션이 loading된 시점에 DB당 딱 하나 생성. WAS가 종료될 떄 닫힘.
+			2. EntityManager) 
+				Transaction단위 수행마다 생성. 즉 사용자 요청이 올 때마다 생성한 후 닫는다. 닫은 후 DB connection 반환.
+				공유할 수 없고 사용 후 버려야 한다.
+				EntityManager가 생성되면 1:1로 영속성 컨텍스트가 생성된다.
+			3. EntityTransaction)
+				Data를 변경하는 모든 작업은 Transaction안에서 이뤄진다.(단순 조회 제외)
+		(2) 1차 캐시
+		 	- 영속성 내부에 존재. DB보다 먼저, 1차 캐시에서 Entity가 존재하는지 확인. 없으면 DB에서 조회 후 1차 캐시에 저장.
+		(3) 동일성 보장
+  			- 영속 Entity간 동일성(==비교) 보장
+		(4) Entity 등록
+  			- Transaction단위 동안 DB에 insert Query를 바로 실행하지 않고 '쓰기 지연 SQL 저장소'에 쌓은다.
+			- Transaction단위가 끝날 때 '쓰기 지연 SQL 저장소'에 쌓여있는 쿼리를 DB로 날린다.
+		(5) Entity 수정 감지(Dirty Cheking) - 삭제도 동일
+			- Entity데이터 수정시 업데이트 해달라는 쿼리를 날리지 않아도 알아서 DB에 반영됨.
+			- 데이터를 set하면 해당 데이터의 변경을 감지하여 자동으로 update 쿼리가 나가기 떄문이다.
+  			- snapshot에 영속서 컨텍스트에 최초로 값이 들어왔을 때의 상태값을 저장한 후 Transaction단위가 끝나면 비교하여 
+				변경사항이 생기면 자동으로 '쓰기 지연 SQL 저장소'에 넣는다.
+			- Dirty Checking으로 생성되는 update쿼리는 기본적으로 모든 필드 업데이트 -> @DynamicUpdate로 변경된 필드만 반영되도록 할 수있다.
+ 	3) 장점
+		- 객체 지향적 개발로 유지보수에 용이하다. 
+		- DB생성, 변경 관리하기 쉽다.
+	4) 단점
+		- 복잡한 비즈니스 로직이 요구될 수 있다.
+
+
+ 	
