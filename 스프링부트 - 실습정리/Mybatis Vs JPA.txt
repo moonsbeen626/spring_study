@@ -1,4 +1,4 @@
-1. Mybatis Vs JPA
+Mybatis Vs JPA
 
 영속성? 
 	- 데이터를 생성한 프로그램이 종료되도 사라지지 않는 데이터의 특성. 
