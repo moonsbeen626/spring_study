@@ -1,0 +1,14 @@
+Application Class
+
+1. 코드
+	@SpringBootApplication // 스프링 부트의 자동 설정, 스프링 bean 읽기와 생성 모두 자동화.
+	public class Application {
+    		public static void main(String[] args)  {
+     	   		SpringApplication.run(Application.class, args);
+    		}
+	}
+
+2. 메인클래스
+	- 프로젝트의 메인 클래스가 된다.
+	- @SpringBootApplication이 있는 위치부터 설정을 읽어 가기 때문에 클래스는 항상 프로젝트 최상단에 위치.
+	- SpringApplication.run 으로 내장 WAS(톰캣) 실행.
