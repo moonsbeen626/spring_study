@@ -9,3 +9,7 @@ Lombok
 	@Setter
 	@RequiredArgsConstructor 
 		- @NotNull 혹은 final 필드를 ioc컨테이너에 자동으로 bean으로 등록
+	@NoArgsConstructor
+		- 자동으로 파라미터가 없는 생성자 생성.
+	@Builder
+		- 모델 객체를 생성할 때 Builder를 자동으로 추가
